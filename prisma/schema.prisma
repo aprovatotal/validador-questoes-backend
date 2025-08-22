@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AppUser {
+  uuid              String           @id @default(uuid())
+  name              String
+  email             String           @unique
+  passwordHash      String           @map("password_hash")
+  role              user_role        @default(USER)
+  isActive          Boolean          @default(true) @map("is_active")
+  emailVerifiedAt   DateTime?        @map("email_verified_at")
+  lastLoginAt       DateTime?        @map("last_login_at")
+  passwordVersion   Int              @default(0) @map("password_version")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  approvedQuestions Question[]       @relation("QuestionApprovedBy")
+  userDisciplines   UserDiscipline[]
+
+  @@map("app_user")
+}
+
+model Discipline {
+  id              BigInt           @id @default(autoincrement())
+  slug            String           @unique
+  name            String
+  questions       Question[]
+  userDisciplines UserDiscipline[]
+
+  @@map("discipline")
+}
+
+model UserDiscipline {
+  userUuid     String     @map("user_uuid")
+  disciplineId BigInt     @map("discipline_id")
+  discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+  user         AppUser    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@id([userUuid, disciplineId])
+  @@map("user_discipline")
+}
+
+model Question {
+  uuid               String        @id @default(uuid())
+  externalid         String        @unique
+  statement          String
+  competence         String
+  skill              String
+  examArea           String        @map("exam_area")
+  subject            String
+  disciplineId       BigInt        @map("discipline_id")
+  topic              String
+  interpretation     String?
+  strategies         String?
+  distractors        String?
+  approved           Boolean       @default(false)
+  approvedAt         DateTime?     @map("approved_at")
+  migrated           Boolean       @default(false)
+  migratedAt         DateTime?     @map("migrated_at")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  approvedByUserUuid String?       @map("approved_by_user_uuid")
+  alternatives       Alternative[]
+  approvedBy         AppUser?      @relation("QuestionApprovedBy", fields: [approvedByUserUuid], references: [uuid])
+  discipline         Discipline    @relation(fields: [disciplineId], references: [id])
+
+  @@index([approved, disciplineId], map: "idx_question_approved")
+  @@index([disciplineId], map: "idx_question_discipline")
+  @@map("question")
+}
+
+model Alternative {
+  id           BigInt   @id @default(autoincrement())
+  questionUuid String   @map("question_uuid")
+  text         String
+  order        Int
+  correct      Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  question     Question @relation(fields: [questionUuid], references: [uuid], onDelete: Cascade)
+
+  @@unique([questionUuid, order])
+  @@map("alternative")
+}
+
+enum user_role {
+  ADMIN
+  EDITOR
+  REVIEWER
+  USER
+}

@@ -1,0 +1,26 @@
+# Dockerfile para desenvolvimento
+FROM node:20-alpine AS development
+
+# Instalar dependências do sistema
+RUN apk add --no-cache libc6-compat openssl
+
+WORKDIR /app
+
+# Copiar arquivos de configuração
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar todas as dependências (incluindo dev)
+RUN npm ci
+
+# Gerar cliente Prisma
+RUN npx prisma generate
+
+# Copiar código fonte
+COPY . .
+
+# Expor portas (app e debug)
+EXPOSE 3000 9229
+
+# Comando padrão para desenvolvimento
+CMD ["npm", "run", "start:dev"]
