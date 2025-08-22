@@ -43,12 +43,6 @@ services:
         condition: service_healthy
     volumes:
       - app_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "node", "--eval", "require('http').get('http://localhost:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # Redis para cache (opcional)
   redis:
