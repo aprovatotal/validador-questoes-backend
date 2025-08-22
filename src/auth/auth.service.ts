@@ -58,10 +58,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        disciplines: user.userDisciplines.map(ud => ({
-          ...ud.discipline,
-          id: ud.discipline.id.toString(),
-        })),
+        disciplines: user.userDisciplines.map(ud => ud.discipline),
       },
       ...tokens,
     };
@@ -101,10 +98,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        disciplines: user.userDisciplines.map(ud => ({
-          ...ud.discipline,
-          id: ud.discipline.id.toString(),
-        })),
+        disciplines: user.userDisciplines.map(ud => ud.discipline),
       },
       ...tokens,
     };
