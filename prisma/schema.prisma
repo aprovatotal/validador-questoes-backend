@@ -59,6 +59,7 @@ model Question {
   interpretation     String?
   strategies         String?
   distractors        String?
+  textResolution     String?
   approved           Boolean       @default(false)
   approvedAt         DateTime?     @map("approved_at")
   migrated           Boolean       @default(false)
