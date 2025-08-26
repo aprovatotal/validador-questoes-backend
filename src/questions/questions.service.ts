@@ -24,10 +24,6 @@ export class QuestionsService {
       throw new ForbiddenException('Access denied to this discipline');
     }
 
-    const correctAlternatives = alternatives.filter(alt => alt.correct);
-    if (correctAlternatives.length !== 1) {
-      throw new BadRequestException('Question must have exactly one correct alternative');
-    }
 
     return this.prisma.question.create({
       data: {
@@ -126,12 +122,6 @@ export class QuestionsService {
       throw new ForbiddenException('Access denied to this discipline');
     }
 
-    if (alternatives) {
-      const correctAlternatives = alternatives.filter(alt => alt.correct);
-      if (correctAlternatives.length !== 1) {
-        throw new BadRequestException('Question must have exactly one correct alternative');
-      }
-    }
 
     return this.prisma.$transaction(async (tx) => {
       if (alternatives) {
