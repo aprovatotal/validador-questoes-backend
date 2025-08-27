@@ -45,18 +45,34 @@ export class QuestionsService {
     const { discipline, page = 1, pageSize = 10, search } = query;
     const skip = (page - 1) * pageSize;
 
-    let disciplineIds = user.disciplines.map(d => d.id);
+    let whereClause: any = {};
 
-    if (discipline) {
-      const targetDiscipline = user.disciplines.find(d => d.slug === discipline);
-      if (!targetDiscipline) {
-        throw new ForbiddenException('Access denied to this discipline');
+    if (user.role === 'ADMIN') {
+      if (discipline) {
+        const targetDiscipline = await this.prisma.discipline.findUnique({
+          where: { slug: discipline }
+        });
+        if (!targetDiscipline) {
+          throw new NotFoundException('Discipline not found');
+        }
+        whereClause.disciplineId = targetDiscipline.id;
       }
-      disciplineIds = [targetDiscipline.id];
+    } else {
+      let disciplineIds = user.disciplines.map(d => d.id);
+
+      if (discipline) {
+        const targetDiscipline = user.disciplines.find(d => d.slug === discipline);
+        if (!targetDiscipline) {
+          throw new ForbiddenException('Access denied to this discipline');
+        }
+        disciplineIds = [targetDiscipline.id];
+      }
+
+      whereClause.disciplineId = { in: disciplineIds };
     }
 
     const where = {
-      disciplineId: { in: disciplineIds },
+      ...whereClause,
       ...(search && {
         OR: [
           { statement: { contains: search, mode: 'insensitive' as const } },
@@ -106,7 +122,7 @@ export class QuestionsService {
       throw new NotFoundException('Question not found');
     }
 
-    if (!this.userHasAccessToDiscipline(user, question.disciplineId)) {
+    if (user.role !== 'ADMIN' && !this.userHasAccessToDiscipline(user, question.disciplineId)) {
       throw new ForbiddenException('Access denied to this discipline');
     }
 
@@ -181,6 +197,9 @@ export class QuestionsService {
   }
 
   private userHasAccessToDiscipline(user: AuthUser, disciplineId: bigint): boolean {
+    if (user.role === 'ADMIN') {
+      return true;
+    }
     return user.disciplines.some(d => d.id === disciplineId);
   }
 }

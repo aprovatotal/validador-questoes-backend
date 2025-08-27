@@ -1,0 +1,2505 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "description": "Cria uma nova conta de usuário no sistema. O email deve ser único e a senha deve ter pelo menos 8 caracteres.",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Dados para registro do usuário",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              },
+              "examples": {
+                "usuario_comum": {
+                  "summary": "Usuário comum",
+                  "description": "Exemplo de registro de usuário comum",
+                  "value": {
+                    "name": "Maria Silva",
+                    "email": "maria.silva@email.com",
+                    "password": "MinhaSenh@123",
+                    "disciplineIds": [
+                      1,
+                      2
+                    ]
+                  }
+                },
+                "editor": {
+                  "summary": "Editor",
+                  "description": "Exemplo de registro de editor",
+                  "value": {
+                    "name": "Carlos Editor",
+                    "email": "carlos.editor@email.com",
+                    "password": "EditorSenh@123",
+                    "disciplineIds": [
+                      1,
+                      2,
+                      3
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário registrado com sucesso",
+            "schema": {
+              "example": {
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "tokenType": "Bearer",
+                "expiresIn": 3600,
+                "user": {
+                  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+                  "name": "Maria Silva",
+                  "email": "maria.silva@email.com",
+                  "role": "USER",
+                  "createdAt": "2024-01-15T10:30:00Z"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "schema": {
+              "example": {
+                "statusCode": 400,
+                "message": "Dados de entrada inválidos",
+                "details": [
+                  "email deve ser um email válido",
+                  "password deve ter pelo menos 8 caracteres"
+                ],
+                "timestamp": "2024-01-15T10:30:00Z",
+                "path": "/auth/register"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email já está em uso",
+            "schema": {
+              "example": {
+                "statusCode": 409,
+                "message": "Email já está em uso",
+                "timestamp": "2024-01-15T10:30:00Z",
+                "path": "/auth/register"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar novo usuário",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Autentica usuário no sistema usando email e senha, retornando tokens de acesso e refresh.",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Credenciais de login",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              },
+              "examples": {
+                "admin": {
+                  "summary": "Administrador",
+                  "description": "Login como administrador",
+                  "value": {
+                    "email": "admin@validador.com",
+                    "password": "admin123"
+                  }
+                },
+                "reviewer": {
+                  "summary": "Revisor",
+                  "description": "Login como revisor",
+                  "value": {
+                    "email": "carlos@validador.com",
+                    "password": "carlos123"
+                  }
+                },
+                "user": {
+                  "summary": "Usuário comum",
+                  "description": "Login como usuário comum",
+                  "value": {
+                    "email": "joao@validador.com",
+                    "password": "joao123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "schema": {
+              "example": {
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "tokenType": "Bearer",
+                "expiresIn": 3600,
+                "user": {
+                  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+                  "name": "Admin Sistema",
+                  "email": "admin@validador.com",
+                  "role": "ADMIN",
+                  "createdAt": "2024-01-15T10:30:00Z"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "schema": {
+              "example": {
+                "statusCode": 400,
+                "message": "Dados de entrada inválidos",
+                "details": [
+                  "email deve ser um email válido"
+                ],
+                "timestamp": "2024-01-15T10:30:00Z",
+                "path": "/auth/login"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas",
+            "schema": {
+              "example": {
+                "statusCode": 401,
+                "message": "Email ou senha inválidos",
+                "timestamp": "2024-01-15T10:30:00Z",
+                "path": "/auth/login"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Fazer login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "description": "Renova o token de acesso usando um refresh token válido. Retorna novos tokens de acesso e refresh.",
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Token de refresh para renovação",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              },
+              "examples": {
+                "refresh": {
+                  "summary": "Renovar token",
+                  "description": "Exemplo de renovação de token",
+                  "value": {
+                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token renovado com sucesso",
+            "schema": {
+              "example": {
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "tokenType": "Bearer",
+                "expiresIn": 3600
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Token inválido",
+            "schema": {
+              "example": {
+                "statusCode": 400,
+                "message": "Dados de entrada inválidos",
+                "details": [
+                  "refreshToken não deve estar vazio"
+                ],
+                "timestamp": "2024-01-15T10:30:00Z",
+                "path": "/auth/refresh"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token inválido ou expirado",
+            "schema": {
+              "example": {
+                "statusCode": 401,
+                "message": "Refresh token inválido ou expirado",
+                "timestamp": "2024-01-15T10:30:00Z",
+                "path": "/auth/refresh"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Renovar token de acesso",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/questions": {
+      "post": {
+        "description": "Cria uma nova questão no sistema com suas alternativas. Requer autenticação JWT.",
+        "operationId": "QuestionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Dados da questão a ser criada",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuestionDto"
+              },
+              "examples": {
+                "historia": {
+                  "summary": "Questão de História",
+                  "description": "Exemplo de questão de história do Brasil",
+                  "value": {
+                    "externalid": "HIS002",
+                    "statement": "Quem foi o primeiro presidente do Brasil?",
+                    "competence": "Compreender períodos históricos",
+                    "skill": "Identificar personagens históricos importantes",
+                    "examArea": "ch",
+                    "subject": "História do Brasil",
+                    "disciplineId": 5,
+                    "topic": "República Velha",
+                    "interpretation": "Questão sobre o início da República no Brasil.",
+                    "strategies": "Conhecer cronologia política brasileira; Associar personagens e períodos",
+                    "distractors": "Outros presidentes e líderes políticos brasileiros",
+                    "alternatives": [
+                      {
+                        "text": "Deodoro da Fonseca",
+                        "order": 1,
+                        "correct": true
+                      },
+                      {
+                        "text": "Getúlio Vargas",
+                        "order": 2,
+                        "correct": false
+                      },
+                      {
+                        "text": "Juscelino Kubitschek",
+                        "order": 3,
+                        "correct": false
+                      },
+                      {
+                        "text": "Floriano Peixoto",
+                        "order": 4,
+                        "correct": false
+                      }
+                    ]
+                  }
+                },
+                "matematica": {
+                  "summary": "Questão de Matemática",
+                  "description": "Exemplo de questão de matemática básica",
+                  "value": {
+                    "externalid": "MAT003",
+                    "statement": "Qual é o resultado de 25 × 4?",
+                    "competence": "Resolver problemas numéricos",
+                    "skill": "Operações básicas com multiplicação",
+                    "examArea": "mt",
+                    "subject": "Aritmética",
+                    "disciplineId": 1,
+                    "topic": "Multiplicação",
+                    "alternatives": [
+                      {
+                        "text": "100",
+                        "order": 1,
+                        "correct": true
+                      },
+                      {
+                        "text": "90",
+                        "order": 2,
+                        "correct": false
+                      },
+                      {
+                        "text": "110",
+                        "order": 3,
+                        "correct": false
+                      },
+                      {
+                        "text": "95",
+                        "order": 4,
+                        "correct": false
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Questão criada com sucesso",
+            "schema": {
+              "example": {
+                "message": "Questão criada com sucesso",
+                "question": {
+                  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+                  "externalid": "HIS002",
+                  "statement": "Quem foi o primeiro presidente do Brasil?",
+                  "competence": "Compreender períodos históricos",
+                  "skill": "Identificar personagens históricos importantes",
+                  "examArea": "ch",
+                  "subject": "História do Brasil",
+                  "topic": "República Velha",
+                  "interpretation": "Questão sobre o início da República no Brasil.",
+                  "strategies": "Conhecer cronologia política brasileira",
+                  "distractors": "Outros presidentes e líderes políticos brasileiros",
+                  "approved": false,
+                  "approvedAt": null,
+                  "createdAt": "2024-01-15T10:30:00Z",
+                  "updatedAt": "2024-01-15T10:30:00Z",
+                  "discipline": {
+                    "id": 5,
+                    "slug": "history",
+                    "name": "História"
+                  },
+                  "approvedByUser": null,
+                  "alternatives": [
+                    {
+                      "uuid": "550e8400-e29b-41d4-a716-446655440001",
+                      "text": "Deodoro da Fonseca",
+                      "order": 1,
+                      "correct": true
+                    }
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionCreatedResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Criar nova questão",
+        "tags": [
+          "questions"
+        ]
+      },
+      "get": {
+        "description": "Lista questões com paginação e filtros. O usuário só vê questões das disciplinas que tem acesso.",
+        "operationId": "QuestionsController_findAll",
+        "parameters": [
+          {
+            "name": "discipline",
+            "required": false,
+            "in": "query",
+            "description": "Slug da disciplina",
+            "schema": {
+              "example": "mathematics",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número da página",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Itens por página",
+            "schema": {
+              "minimum": 1,
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Termo de busca",
+            "schema": {
+              "example": "independência",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de questões retornada com sucesso",
+            "schema": {
+              "example": {
+                "data": [
+                  {
+                    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+                    "externalid": "HIS001",
+                    "statement": "Em que ano foi proclamada a Independência do Brasil?",
+                    "competence": "Compreender marcos históricos",
+                    "skill": "Identificar datas importantes da história brasileira",
+                    "examArea": "ch",
+                    "subject": "História do Brasil",
+                    "topic": "Brasil Independente",
+                    "approved": true,
+                    "approvedAt": "2024-01-15T10:30:00Z",
+                    "createdAt": "2024-01-15T10:00:00Z",
+                    "updatedAt": "2024-01-15T10:30:00Z",
+                    "discipline": {
+                      "id": 5,
+                      "slug": "history",
+                      "name": "História"
+                    },
+                    "alternatives": []
+                  }
+                ],
+                "pagination": {
+                  "page": 1,
+                  "pageSize": 10,
+                  "total": 25,
+                  "totalPages": 3,
+                  "hasNext": true,
+                  "hasPrev": false
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedQuestionsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Listar questões",
+        "tags": [
+          "questions"
+        ]
+      }
+    },
+    "/questions/{uuid}": {
+      "get": {
+        "description": "Retorna uma questão específica com todas as suas informações e alternativas.",
+        "operationId": "QuestionsController_findOne",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID da questão",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Questão encontrada",
+            "schema": {
+              "example": {
+                "uuid": "550e8400-e29b-41d4-a716-446655440000",
+                "externalid": "HIS001",
+                "statement": "Em que ano foi proclamada a Independência do Brasil?",
+                "competence": "Compreender marcos históricos",
+                "skill": "Identificar datas importantes da história brasileira",
+                "examArea": "ch",
+                "subject": "História do Brasil",
+                "topic": "Brasil Independente",
+                "interpretation": "Questão sobre marco fundamental da história brasileira.",
+                "strategies": "Conhecer cronologia da história do Brasil; Associar eventos e datas",
+                "distractors": "Datas de outros eventos importantes da história brasileira",
+                "approved": true,
+                "approvedAt": "2024-01-15T10:30:00Z",
+                "createdAt": "2024-01-15T10:00:00Z",
+                "updatedAt": "2024-01-15T10:30:00Z",
+                "discipline": {
+                  "id": 5,
+                  "slug": "history",
+                  "name": "História"
+                },
+                "approvedByUser": {
+                  "uuid": "550e8400-e29b-41d4-a716-446655440001",
+                  "name": "Ana Portuguesa",
+                  "role": "EDITOR"
+                },
+                "alternatives": [
+                  {
+                    "uuid": "550e8400-e29b-41d4-a716-446655440002",
+                    "text": "1822",
+                    "order": 1,
+                    "correct": true
+                  },
+                  {
+                    "uuid": "550e8400-e29b-41d4-a716-446655440003",
+                    "text": "1889",
+                    "order": 2,
+                    "correct": false
+                  }
+                ]
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Questão não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Buscar questão por UUID",
+        "tags": [
+          "questions"
+        ]
+      },
+      "patch": {
+        "description": "Atualiza os dados de uma questão existente. Apenas o criador da questão ou usuários com permissões superiores podem editar.",
+        "operationId": "QuestionsController_update",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID da questão a ser atualizada",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Dados a serem atualizados (todos os campos são opcionais)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateQuestionDto"
+              },
+              "examples": {
+                "atualizar_enunciado": {
+                  "summary": "Atualizar enunciado",
+                  "description": "Exemplo de atualização apenas do enunciado",
+                  "value": {
+                    "statement": "Em que ano foi proclamada a Independência do Brasil por Dom Pedro I?"
+                  }
+                },
+                "atualizar_completo": {
+                  "summary": "Atualização completa",
+                  "description": "Exemplo de atualização de vários campos",
+                  "value": {
+                    "statement": "Em que ano foi proclamada a Independência do Brasil por Dom Pedro I?",
+                    "interpretation": "Questão reformulada sobre marco fundamental da história brasileira.",
+                    "strategies": "Conhecer cronologia da história do Brasil; Identificar personagens históricos; Associar eventos e datas"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Questão atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Questão não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Atualizar questão",
+        "tags": [
+          "questions"
+        ]
+      },
+      "delete": {
+        "description": "Remove uma questão do sistema. Apenas o criador da questão ou usuários com permissões superiores podem excluir.",
+        "operationId": "QuestionsController_remove",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID da questão a ser excluída",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Questão excluída com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "message": "Questão excluída com sucesso",
+                    "questionUuid": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão para excluir esta questão",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Acesso negado. Você não tem permissão para excluir esta questão.",
+                    "timestamp": "2024-01-15T10:30:00Z",
+                    "path": "/questions/550e8400-e29b-41d4-a716-446655440000"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Questão não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Excluir questão",
+        "tags": [
+          "questions"
+        ]
+      }
+    },
+    "/questions/{uuid}/approve": {
+      "patch": {
+        "description": "Aprova uma questão para uso no sistema. Apenas usuários com papel REVIEWER, EDITOR ou ADMIN podem aprovar questões.",
+        "operationId": "QuestionsController_approve",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID da questão a ser aprovada",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Questão aprovada com sucesso",
+            "schema": {
+              "example": {
+                "message": "Questão aprovada com sucesso",
+                "questionUuid": "550e8400-e29b-41d4-a716-446655440000",
+                "approvedAt": "2024-01-15T10:30:00Z",
+                "approvedBy": {
+                  "uuid": "550e8400-e29b-41d4-a716-446655440001",
+                  "name": "Carlos Matemático",
+                  "role": "REVIEWER"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionApprovedResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão para aprovar questões",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Acesso negado. Apenas REVIEWER, EDITOR ou ADMIN podem aprovar questões.",
+                    "timestamp": "2024-01-15T10:30:00Z",
+                    "path": "/questions/550e8400-e29b-41d4-a716-446655440000/approve"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Questão não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Aprovar questão",
+        "tags": [
+          "questions"
+        ]
+      }
+    },
+    "/disciplines": {
+      "get": {
+        "description": "Lista disciplinas com paginação e filtros. Usuários ADMIN veem todas as disciplinas, outros usuários veem apenas as disciplinas associadas a eles.",
+        "operationId": "DisciplinesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número da página",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Itens por página (máximo 100)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Termo de busca por nome da disciplina",
+            "schema": {
+              "example": "matemática",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de disciplinas retornada com sucesso",
+            "schema": {
+              "example": {
+                "data": [
+                  {
+                    "id": 1,
+                    "slug": "mathematics",
+                    "name": "Matemática"
+                  },
+                  {
+                    "id": 2,
+                    "slug": "portuguese",
+                    "name": "Português"
+                  },
+                  {
+                    "id": 5,
+                    "slug": "history",
+                    "name": "História"
+                  }
+                ],
+                "meta": {
+                  "page": 1,
+                  "pageSize": 10,
+                  "total": 3,
+                  "totalPages": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedDisciplinesResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Listar disciplinas",
+        "tags": [
+          "disciplines"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "description": "Lista usuários com informações completas, perfil e disciplinas. Apenas usuários ADMIN podem acessar esta funcionalidade.",
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número da página",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Itens por página (máximo 100)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Termo de busca por nome ou email do usuário",
+            "schema": {
+              "example": "joão",
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por perfil do usuário",
+            "schema": {
+              "enum": [
+                "ADMIN",
+                "EDITOR",
+                "REVIEWER",
+                "USER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por status ativo/inativo",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuários retornada com sucesso",
+            "schema": {
+              "example": {
+                "data": [
+                  {
+                    "uuid": "550e8400-e29b-41d4-a716-446655440000",
+                    "name": "João Silva",
+                    "email": "joao@email.com",
+                    "role": "USER",
+                    "isActive": true,
+                    "emailVerifiedAt": "2024-01-15T10:30:00Z",
+                    "lastLoginAt": "2024-01-20T14:30:00Z",
+                    "createdAt": "2024-01-10T09:00:00Z",
+                    "updatedAt": "2024-01-20T14:30:00Z",
+                    "disciplines": [
+                      {
+                        "id": 1,
+                        "slug": "mathematics",
+                        "name": "Matemática"
+                      },
+                      {
+                        "id": 2,
+                        "slug": "portuguese",
+                        "name": "Português"
+                      }
+                    ]
+                  }
+                ],
+                "meta": {
+                  "page": 1,
+                  "pageSize": 10,
+                  "total": 1,
+                  "totalPages": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedUsersResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão para listar usuários",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Access denied. Only ADMIN can list users.",
+                    "timestamp": "2024-01-15T10:30:00Z",
+                    "path": "/users"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Listar usuários",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{uuid}/deactivate": {
+      "patch": {
+        "description": "Inativa um usuário no sistema, impedindo seu login. Apenas usuários ADMIN podem executar esta ação. Não é possível inativar a própria conta.",
+        "operationId": "UsersController_deactivateUser",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID do usuário a ser inativado",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário inativado com sucesso",
+            "schema": {
+              "example": {
+                "message": "Usuário inativado com sucesso",
+                "userUuid": "550e8400-e29b-41d4-a716-446655440000",
+                "isActive": false
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatusResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão ou tentando inativar própria conta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Cannot deactivate your own account",
+                    "timestamp": "2024-01-15T10:30:00Z",
+                    "path": "/users/550e8400-e29b-41d4-a716-446655440000/deactivate"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Inativar usuário",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{uuid}/activate": {
+      "patch": {
+        "description": "Ativa um usuário inativo no sistema, permitindo seu login novamente. Apenas usuários ADMIN podem executar esta ação.",
+        "operationId": "UsersController_activateUser",
+        "parameters": [
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "UUID do usuário a ser ativado",
+            "schema": {
+              "example": "550e8400-e29b-41d4-a716-446655440000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário ativado com sucesso",
+            "schema": {
+              "example": {
+                "message": "Usuário ativado com sucesso",
+                "userUuid": "550e8400-e29b-41d4-a716-446655440000",
+                "isActive": true
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatusResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão para ativar usuários",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 403,
+                    "message": "Access denied. Only ADMIN can activate users.",
+                    "timestamp": "2024-01-15T10:30:00Z",
+                    "path": "/users/550e8400-e29b-41d4-a716-446655440000/activate"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Ativar usuário",
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Validador de Questões API",
+    "description": "API para validação e gerenciamento de questões educacionais",
+    "version": "1.0",
+    "contact": {
+      "name": "Suporte",
+      "url": "https://validador.com/contato",
+      "email": "suporte@validador.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Endpoints de autenticação"
+    },
+    {
+      "name": "questions",
+      "description": "Endpoints de questões"
+    },
+    {
+      "name": "users",
+      "description": "Endpoints de usuários"
+    },
+    {
+      "name": "disciplines",
+      "description": "Endpoints de disciplinas"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Desenvolvimento"
+    },
+    {
+      "url": "https://api.validador.com",
+      "description": "Produção"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "JWT",
+        "description": "Token JWT para autenticação",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome completo do usuário",
+            "example": "João Silva",
+            "minLength": 2
+          },
+          "email": {
+            "type": "string",
+            "description": "Email único do usuário",
+            "example": "joao.silva@email.com",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "Senha do usuário",
+            "example": "MinhaSenh@123",
+            "minLength": 8,
+            "format": "password"
+          },
+          "disciplineIds": {
+            "description": "IDs das disciplinas que o usuário pode acessar",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "UUID único do usuário",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome do usuário",
+            "example": "João Silva"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email do usuário",
+            "example": "joao.silva@email.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "Role do usuário no sistema",
+            "example": "USER",
+            "enum": [
+              "USER",
+              "EDITOR",
+              "REVIEWER",
+              "ADMIN"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Data de criação da conta",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "email",
+          "role",
+          "createdAt"
+        ]
+      },
+      "RegisterResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Token de acesso JWT",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Token de atualização",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          "tokenType": {
+            "type": "string",
+            "description": "Tipo do token",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Tempo de expiração em segundos",
+            "example": 3600
+          },
+          "user": {
+            "description": "Perfil do usuário criado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserProfileDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ]
+      },
+      "ValidationErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Código de status HTTP",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de erro",
+            "example": "Dados inválidos fornecidos"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp do erro",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "path": {
+            "type": "string",
+            "description": "Caminho da requisição",
+            "example": "/api/auth/login"
+          },
+          "details": {
+            "description": "Detalhes dos erros de validação",
+            "example": [
+              "email deve ser um email válido",
+              "password deve ter pelo menos 8 caracteres"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "timestamp",
+          "path",
+          "details"
+        ]
+      },
+      "ConflictErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Código de status HTTP",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de conflito",
+            "example": "Email já está em uso"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp do erro",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "path": {
+            "type": "string",
+            "description": "Caminho da requisição",
+            "example": "/api/auth/login"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "timestamp",
+          "path"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email do usuário",
+            "example": "joao.silva@email.com",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "Senha do usuário",
+            "example": "MinhaSenh@123",
+            "format": "password"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Token de acesso JWT",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Token de atualização",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          "tokenType": {
+            "type": "string",
+            "description": "Tipo do token",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Tempo de expiração em segundos",
+            "example": 3600
+          },
+          "user": {
+            "description": "Perfil do usuário logado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserProfileDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ]
+      },
+      "UnauthorizedErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Código de status HTTP",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de erro de autorização",
+            "example": "Token inválido ou expirado"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp do erro",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "path": {
+            "type": "string",
+            "description": "Caminho da requisição",
+            "example": "/api/auth/login"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "timestamp",
+          "path"
+        ]
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Token de refresh para renovação do JWT",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Token de acesso JWT",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Token de atualização",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          "tokenType": {
+            "type": "string",
+            "description": "Tipo do token",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Tempo de expiração em segundos",
+            "example": 3600
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn"
+        ]
+      },
+      "CreateAlternativeDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Texto da alternativa",
+            "example": "Brasil foi descoberto em 1500"
+          },
+          "order": {
+            "type": "number",
+            "description": "Ordem de exibição da alternativa",
+            "example": 1,
+            "minimum": 1
+          },
+          "correct": {
+            "type": "boolean",
+            "description": "Indica se a alternativa é correta",
+            "example": true
+          }
+        },
+        "required": [
+          "text",
+          "order",
+          "correct"
+        ]
+      },
+      "CreateQuestionDto": {
+        "type": "object",
+        "properties": {
+          "externalid": {
+            "type": "string",
+            "description": "ID externo da questão (identificador único do sistema de origem)",
+            "example": "HIS001"
+          },
+          "statement": {
+            "type": "string",
+            "description": "Enunciado da questão",
+            "example": "Em que ano foi proclamada a Independência do Brasil?"
+          },
+          "competence": {
+            "type": "string",
+            "description": "Competência avaliada pela questão",
+            "example": "Compreender marcos históricos"
+          },
+          "skill": {
+            "type": "string",
+            "description": "Habilidade específica avaliada",
+            "example": "Identificar datas importantes da história brasileira"
+          },
+          "examArea": {
+            "type": "string",
+            "description": "Área do exame (ch, cn, lc, mt)",
+            "example": "ch",
+            "enum": [
+              "ch",
+              "cn",
+              "lc",
+              "mt"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "description": "Assunto da questão",
+            "example": "História do Brasil"
+          },
+          "disciplineId": {
+            "type": "number",
+            "description": "ID da disciplina",
+            "example": 5
+          },
+          "topic": {
+            "type": "string",
+            "description": "Tópico específico da questão",
+            "example": "Brasil Independente"
+          },
+          "interpretation": {
+            "type": "string",
+            "description": "Interpretação pedagógica da questão",
+            "example": "Questão sobre marco fundamental da história brasileira."
+          },
+          "strategies": {
+            "type": "string",
+            "description": "Estratégias de resolução",
+            "example": "Conhecer cronologia da história do Brasil; Associar eventos e datas"
+          },
+          "distractors": {
+            "type": "string",
+            "description": "Descrição dos distratores (alternativas incorretas)",
+            "example": "Datas de outros eventos importantes da história brasileira"
+          },
+          "alternatives": {
+            "description": "Lista de alternativas da questão",
+            "example": [
+              {
+                "text": "1822",
+                "order": 1,
+                "correct": true
+              },
+              {
+                "text": "1889",
+                "order": 2,
+                "correct": false
+              },
+              {
+                "text": "1888",
+                "order": 3,
+                "correct": false
+              },
+              {
+                "text": "1824",
+                "order": 4,
+                "correct": false
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateAlternativeDto"
+            }
+          }
+        },
+        "required": [
+          "externalid",
+          "statement",
+          "competence",
+          "skill",
+          "examArea",
+          "subject",
+          "disciplineId",
+          "topic",
+          "alternatives"
+        ]
+      },
+      "DisciplineResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "ID da disciplina",
+            "example": 1
+          },
+          "slug": {
+            "type": "string",
+            "description": "Slug da disciplina",
+            "example": "history"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome da disciplina",
+            "example": "História"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ]
+      },
+      "UserBasicResponseDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "UUID do usuário",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome do usuário",
+            "example": "Ana Portuguesa"
+          },
+          "role": {
+            "type": "string",
+            "description": "Role do usuário",
+            "example": "EDITOR"
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "role"
+        ]
+      },
+      "AlternativeResponseDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "UUID da alternativa",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "text": {
+            "type": "string",
+            "description": "Texto da alternativa",
+            "example": "1822"
+          },
+          "order": {
+            "type": "number",
+            "description": "Ordem de exibição",
+            "example": 1
+          },
+          "correct": {
+            "type": "boolean",
+            "description": "Indica se é a alternativa correta",
+            "example": true
+          }
+        },
+        "required": [
+          "uuid",
+          "text",
+          "order",
+          "correct"
+        ]
+      },
+      "QuestionResponseDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "UUID da questão",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "externalid": {
+            "type": "string",
+            "description": "ID externo da questão",
+            "example": "HIS001"
+          },
+          "statement": {
+            "type": "string",
+            "description": "Enunciado da questão",
+            "example": "Em que ano foi proclamada a Independência do Brasil?"
+          },
+          "competence": {
+            "type": "string",
+            "description": "Competência avaliada",
+            "example": "Compreender marcos históricos"
+          },
+          "skill": {
+            "type": "string",
+            "description": "Habilidade específica",
+            "example": "Identificar datas importantes da história brasileira"
+          },
+          "examArea": {
+            "type": "string",
+            "description": "Área do exame",
+            "example": "ch"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Assunto",
+            "example": "História do Brasil"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Tópico específico",
+            "example": "Brasil Independente"
+          },
+          "interpretation": {
+            "type": "string",
+            "description": "Interpretação pedagógica",
+            "example": "Questão sobre marco fundamental da história brasileira.",
+            "nullable": true
+          },
+          "strategies": {
+            "type": "string",
+            "description": "Estratégias de resolução",
+            "example": "Conhecer cronologia da história do Brasil; Associar eventos e datas",
+            "nullable": true
+          },
+          "distractors": {
+            "type": "string",
+            "description": "Descrição dos distratores",
+            "example": "Datas de outros eventos importantes da história brasileira",
+            "nullable": true
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Status de aprovação",
+            "example": true
+          },
+          "approvedAt": {
+            "type": "string",
+            "description": "Data de aprovação",
+            "example": "2024-01-15T10:30:00Z",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Data de criação",
+            "example": "2024-01-15T10:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Data de atualização",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "discipline": {
+            "description": "Disciplina da questão",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisciplineResponseDto"
+              }
+            ]
+          },
+          "approvedByUser": {
+            "description": "Usuário que aprovou a questão",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserBasicResponseDto"
+              }
+            ]
+          },
+          "alternatives": {
+            "description": "Alternativas da questão",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlternativeResponseDto"
+            }
+          }
+        },
+        "required": [
+          "uuid",
+          "externalid",
+          "statement",
+          "competence",
+          "skill",
+          "examArea",
+          "subject",
+          "topic",
+          "interpretation",
+          "strategies",
+          "distractors",
+          "approved",
+          "approvedAt",
+          "createdAt",
+          "updatedAt",
+          "discipline",
+          "approvedByUser",
+          "alternatives"
+        ]
+      },
+      "QuestionCreatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensagem de sucesso",
+            "example": "Questão criada com sucesso"
+          },
+          "question": {
+            "description": "Dados da questão criada",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QuestionResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "question"
+        ]
+      },
+      "PaginatedQuestionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de questões",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponseDto"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "description": "Informações de paginação",
+            "example": {
+              "page": 1,
+              "pageSize": 10,
+              "total": 25,
+              "totalPages": 3,
+              "hasNext": true,
+              "hasPrev": false
+            }
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "NotFoundErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Código de status HTTP",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de recurso não encontrado",
+            "example": "Usuário não encontrado"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp do erro",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "path": {
+            "type": "string",
+            "description": "Caminho da requisição",
+            "example": "/api/auth/login"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "timestamp",
+          "path"
+        ]
+      },
+      "UpdateQuestionDto": {
+        "type": "object",
+        "properties": {
+          "externalid": {
+            "type": "string",
+            "description": "ID externo da questão (identificador único do sistema de origem)",
+            "example": "HIS001"
+          },
+          "statement": {
+            "type": "string",
+            "description": "Enunciado da questão",
+            "example": "Em que ano foi proclamada a Independência do Brasil?"
+          },
+          "competence": {
+            "type": "string",
+            "description": "Competência avaliada pela questão",
+            "example": "Compreender marcos históricos"
+          },
+          "skill": {
+            "type": "string",
+            "description": "Habilidade específica avaliada",
+            "example": "Identificar datas importantes da história brasileira"
+          },
+          "examArea": {
+            "type": "string",
+            "description": "Área do exame (ch, cn, lc, mt)",
+            "example": "ch",
+            "enum": [
+              "ch",
+              "cn",
+              "lc",
+              "mt"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "description": "Assunto da questão",
+            "example": "História do Brasil"
+          },
+          "disciplineId": {
+            "type": "number",
+            "description": "ID da disciplina",
+            "example": 5
+          },
+          "topic": {
+            "type": "string",
+            "description": "Tópico específico da questão",
+            "example": "Brasil Independente"
+          },
+          "interpretation": {
+            "type": "string",
+            "description": "Interpretação pedagógica da questão",
+            "example": "Questão sobre marco fundamental da história brasileira."
+          },
+          "strategies": {
+            "type": "string",
+            "description": "Estratégias de resolução",
+            "example": "Conhecer cronologia da história do Brasil; Associar eventos e datas"
+          },
+          "distractors": {
+            "type": "string",
+            "description": "Descrição dos distratores (alternativas incorretas)",
+            "example": "Datas de outros eventos importantes da história brasileira"
+          },
+          "alternatives": {
+            "description": "Lista de alternativas da questão",
+            "example": [
+              {
+                "text": "1822",
+                "order": 1,
+                "correct": true
+              },
+              {
+                "text": "1889",
+                "order": 2,
+                "correct": false
+              },
+              {
+                "text": "1888",
+                "order": 3,
+                "correct": false
+              },
+              {
+                "text": "1824",
+                "order": 4,
+                "correct": false
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateAlternativeDto"
+            }
+          }
+        }
+      },
+      "QuestionApprovedResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensagem de sucesso",
+            "example": "Questão aprovada com sucesso"
+          },
+          "questionUuid": {
+            "type": "string",
+            "description": "UUID da questão aprovada",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "approvedAt": {
+            "type": "string",
+            "description": "Data de aprovação",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "approvedBy": {
+            "description": "Usuário que aprovou",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserBasicResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "message",
+          "questionUuid",
+          "approvedAt",
+          "approvedBy"
+        ]
+      },
+      "PaginatedDisciplinesResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de disciplinas",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DisciplineResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadados da paginação",
+            "example": {
+              "page": 1,
+              "pageSize": 10,
+              "total": 25,
+              "totalPages": 3
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UserDisciplineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "ID da disciplina",
+            "example": 1
+          },
+          "slug": {
+            "type": "string",
+            "description": "Slug da disciplina",
+            "example": "mathematics"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome da disciplina",
+            "example": "Matemática"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "UUID único do usuário",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome do usuário",
+            "example": "João Silva"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email do usuário",
+            "example": "joao@email.com"
+          },
+          "role": {
+            "type": "string",
+            "description": "Perfil do usuário",
+            "enum": [
+              "ADMIN",
+              "EDITOR",
+              "REVIEWER",
+              "USER"
+            ],
+            "example": "USER"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Status ativo/inativo do usuário",
+            "example": true
+          },
+          "emailVerifiedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Data de verificação do email",
+            "example": "2024-01-15T10:30:00Z",
+            "nullable": true
+          },
+          "lastLoginAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Data do último login",
+            "example": "2024-01-20T14:30:00Z",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Data de criação da conta",
+            "example": "2024-01-10T09:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Data da última atualização",
+            "example": "2024-01-20T14:30:00Z"
+          },
+          "disciplines": {
+            "description": "Lista de disciplinas que o usuário tem acesso",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDisciplineDto"
+            }
+          }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "email",
+          "role",
+          "isActive",
+          "emailVerifiedAt",
+          "lastLoginAt",
+          "createdAt",
+          "updatedAt",
+          "disciplines"
+        ]
+      },
+      "PaginatedUsersResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "description": "Lista de usuários",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadados da paginação",
+            "example": {
+              "page": 1,
+              "pageSize": 10,
+              "total": 25,
+              "totalPages": 3
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UserStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensagem de confirmação",
+            "example": "Usuário inativado com sucesso"
+          },
+          "userUuid": {
+            "type": "string",
+            "description": "UUID do usuário afetado",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Novo status do usuário",
+            "example": false
+          }
+        },
+        "required": [
+          "message",
+          "userUuid",
+          "isActive"
+        ]
+      }
+    }
+  }
+}
