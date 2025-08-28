@@ -212,6 +212,67 @@ export class QuestionsController {
     return this.questionsService.findAll(query, req.user);
   }
 
+  @Get('approved')
+  @ApiOperation({ 
+    summary: 'Listar questões aprovadas',
+    description: 'Lista apenas questões aprovadas com paginação e filtros. O usuário só vê questões das disciplinas que tem acesso.'
+  })
+  @ApiQuery({ name: 'discipline', required: false, description: 'Slug da disciplina' })
+  @ApiQuery({ name: 'page', required: false, description: 'Número da página' })
+  @ApiQuery({ name: 'pageSize', required: false, description: 'Itens por página' })
+  @ApiQuery({ name: 'search', required: false, description: 'Termo de busca' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de questões aprovadas retornada com sucesso',
+    type: PaginatedQuestionsResponseDto,
+    schema: {
+      example: {
+        data: [
+          {
+            uuid: '550e8400-e29b-41d4-a716-446655440000',
+            externalid: 'HIS001',
+            statement: 'Em que ano foi proclamada a Independência do Brasil?',
+            competence: 'Compreender marcos históricos',
+            skill: 'Identificar datas importantes da história brasileira',
+            examArea: 'ch',
+            subject: 'História do Brasil',
+            topic: 'Brasil Independente',
+            approved: true,
+            approvedAt: '2024-01-15T10:30:00Z',
+            createdAt: '2024-01-15T10:00:00Z',
+            updatedAt: '2024-01-15T10:30:00Z',
+            discipline: {
+              id: 5,
+              slug: 'history',
+              name: 'História'
+            },
+            approvedByUser: {
+              name: 'Ana Revisora',
+              email: 'ana.revisora@email.com'
+            },
+            alternatives: []
+          }
+        ],
+        pagination: {
+          page: 1,
+          pageSize: 10,
+          total: 15,
+          totalPages: 2,
+          hasNext: true,
+          hasPrev: false
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'Token inválido ou ausente',
+    type: UnauthorizedErrorResponseDto 
+  })
+  findApproved(@Query() query: QueryQuestionsDto, @Request() req) {
+    return this.questionsService.findApproved(query, req.user);
+  }
+
   @Get(':uuid')
   @ApiOperation({ 
     summary: 'Buscar questão por UUID',

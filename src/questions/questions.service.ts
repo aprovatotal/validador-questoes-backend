@@ -25,7 +25,7 @@ export class QuestionsService {
     }
 
 
-    return this.prisma.question.create({
+    const question = await this.prisma.question.create({
       data: {
         ...questionData,
         disciplineId: BigInt(disciplineId),
@@ -39,6 +39,19 @@ export class QuestionsService {
         approvedBy: true,
       },
     });
+
+    return {
+      ...question,
+      createdAt: question.createdAt ? question.createdAt.toISOString() : null,
+      updatedAt: question.updatedAt ? question.updatedAt.toISOString() : null,
+      approvedAt: question.approvedAt ? question.approvedAt.toISOString() : null,
+      migratedAt: question.migratedAt ? question.migratedAt.toISOString() : null,
+      alternatives: question.alternatives ? question.alternatives.map(alt => ({
+        ...alt,
+        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+      })) : [],
+    };
   }
 
   async findAll(query: QueryQuestionsDto, user: AuthUser) {
@@ -97,8 +110,103 @@ export class QuestionsService {
       this.prisma.question.count({ where }),
     ]);
 
+    // Garantir que os campos de data sejam incluídos e convertidos para string ISO
+    const questionsWithDates = questions.map(q => ({
+      ...q,
+      createdAt: q.createdAt ? q.createdAt.toISOString() : null,
+      updatedAt: q.updatedAt ? q.updatedAt.toISOString() : null,
+      approvedAt: q.approvedAt ? q.approvedAt.toISOString() : null,
+      migratedAt: q.migratedAt ? q.migratedAt.toISOString() : null,
+      alternatives: q.alternatives ? q.alternatives.map(alt => ({
+        ...alt,
+        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+      })) : [],
+    }));
+
     return {
-      data: questions,
+      data: questionsWithDates,
+      meta: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  async findApproved(query: QueryQuestionsDto, user: AuthUser) {
+    const { discipline, page = 1, pageSize = 10, search } = query;
+    const skip = (page - 1) * pageSize;
+
+    let whereClause: any = {};
+
+    if (user.role === 'ADMIN') {
+      if (discipline) {
+        const targetDiscipline = await this.prisma.discipline.findUnique({
+          where: { slug: discipline }
+        });
+        if (!targetDiscipline) {
+          throw new NotFoundException('Discipline not found');
+        }
+        whereClause.disciplineId = targetDiscipline.id;
+      }
+    } else {
+      let disciplineIds = user.disciplines.map(d => d.id);
+
+      if (discipline) {
+        const targetDiscipline = user.disciplines.find(d => d.slug === discipline);
+        if (!targetDiscipline) {
+          throw new ForbiddenException('Access denied to this discipline');
+        }
+        disciplineIds = [targetDiscipline.id];
+      }
+
+      whereClause.disciplineId = { in: disciplineIds };
+    }
+
+    const where = {
+      ...whereClause,
+      approved: true, // Filtro para questões aprovadas
+      ...(search && {
+        OR: [
+          { statement: { contains: search, mode: 'insensitive' as const } },
+          { topic: { contains: search, mode: 'insensitive' as const } },
+          { subject: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+    };
+
+    const [questions, total] = await Promise.all([
+      this.prisma.question.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { approvedAt: 'desc' }, // Ordenar por data de aprovação
+        include: {
+          alternatives: true,
+          discipline: true,
+          approvedBy: { select: { name: true, email: true } },
+        },
+      }),
+      this.prisma.question.count({ where }),
+    ]);
+
+    const questionsWithDates = questions.map(q => ({
+      ...q,
+      createdAt: q.createdAt ? q.createdAt.toISOString() : null,
+      updatedAt: q.updatedAt ? q.updatedAt.toISOString() : null,
+      approvedAt: q.approvedAt ? q.approvedAt.toISOString() : null,
+      migratedAt: q.migratedAt ? q.migratedAt.toISOString() : null,
+      alternatives: q.alternatives ? q.alternatives.map(alt => ({
+        ...alt,
+        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+      })) : [],
+    }));
+
+    return {
+      data: questionsWithDates,
       meta: {
         page,
         pageSize,
@@ -126,7 +234,18 @@ export class QuestionsService {
       throw new ForbiddenException('Access denied to this discipline');
     }
 
-    return question;
+    return {
+      ...question,
+      createdAt: question.createdAt ? question.createdAt.toISOString() : null,
+      updatedAt: question.updatedAt ? question.updatedAt.toISOString() : null,
+      approvedAt: question.approvedAt ? question.approvedAt.toISOString() : null,
+      migratedAt: question.migratedAt ? question.migratedAt.toISOString() : null,
+      alternatives: question.alternatives ? question.alternatives.map(alt => ({
+        ...alt,
+        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+      })) : [],
+    };
   }
 
   async update(uuid: string, updateQuestionDto: UpdateQuestionDto, user: AuthUser) {
@@ -146,7 +265,7 @@ export class QuestionsService {
         });
       }
 
-      return tx.question.update({
+      const updated = await tx.question.update({
         where: { uuid },
         data: {
           ...questionData,
@@ -163,6 +282,19 @@ export class QuestionsService {
           approvedBy: { select: { name: true, email: true } },
         },
       });
+
+      return {
+        ...updated,
+        createdAt: updated.createdAt ? updated.createdAt.toISOString() : null,
+        updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : null,
+        approvedAt: updated.approvedAt ? updated.approvedAt.toISOString() : null,
+        migratedAt: updated.migratedAt ? updated.migratedAt.toISOString() : null,
+        alternatives: updated.alternatives ? updated.alternatives.map(alt => ({
+          ...alt,
+          createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+          updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+        })) : [],
+      };
     });
   }
 
@@ -173,7 +305,7 @@ export class QuestionsService {
 
     const question = await this.findOne(uuid, user);
 
-    return this.prisma.question.update({
+    const approved = await this.prisma.question.update({
       where: { uuid },
       data: {
         approved: true,
@@ -186,6 +318,19 @@ export class QuestionsService {
         approvedBy: { select: { name: true, email: true } },
       },
     });
+
+    return {
+      ...approved,
+      createdAt: approved.createdAt ? approved.createdAt.toISOString() : null,
+      updatedAt: approved.updatedAt ? approved.updatedAt.toISOString() : null,
+      approvedAt: approved.approvedAt ? approved.approvedAt.toISOString() : null,
+      migratedAt: approved.migratedAt ? approved.migratedAt.toISOString() : null,
+      alternatives: approved.alternatives ? approved.alternatives.map(alt => ({
+        ...alt,
+        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+      })) : [],
+    };
   }
 
   async remove(uuid: string, user: AuthUser) {
