@@ -1,10 +1,12 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { user_role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +16,11 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto, adminUser: any) {
+    if (adminUser.role !== user_role.ADMIN) {
+      throw new ForbiddenException('Access denied. Only ADMIN can register users.');
+    }
+
     const { name, email, password, disciplineIds = [] } = registerDto;
 
     const existingUser = await this.prisma.appUser.findUnique({
@@ -122,6 +128,37 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async adminChangePassword(changePasswordDto: ChangePasswordDto, adminUser: any) {
+    if (adminUser.role !== user_role.ADMIN) {
+      throw new ForbiddenException('Access denied. Only ADMIN can change user passwords.');
+    }
+
+    const { userUuid, newPassword } = changePasswordDto;
+
+    const targetUser = await this.prisma.appUser.findUnique({
+      where: { uuid: userUuid },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const newPasswordHash = await argon2.hash(newPassword);
+
+    await this.prisma.appUser.update({
+      where: { uuid: userUuid },
+      data: { 
+        passwordHash: newPasswordHash,
+        updatedAt: new Date()
+      },
+    });
+
+    return {
+      message: 'Senha alterada com sucesso',
+      userUuid: userUuid
+    };
   }
 
   private async generateTokens(uuid: string, email: string, role: string) {

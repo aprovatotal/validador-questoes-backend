@@ -1,16 +1,21 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, UseGuards, Request, Patch } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { RegisterResponseDto, LoginResponseDto, AuthResponseDto } from './dto/auth-response.dto';
 import { 
   ErrorResponseDto, 
   ValidationErrorResponseDto, 
   ConflictErrorResponseDto,
-  UnauthorizedErrorResponseDto 
+  UnauthorizedErrorResponseDto,
+  NotFoundErrorResponseDto
 } from '../common/dto/error-response.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard, Roles } from './guards/roles.guard';
+import { user_role } from '@prisma/client';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -18,9 +23,12 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(user_role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ 
-    summary: 'Registrar novo usuário',
-    description: 'Cria uma nova conta de usuário no sistema. O email deve ser único e a senha deve ter pelo menos 8 caracteres.'
+    summary: 'Registrar novo usuário (Admin)',
+    description: 'Cria uma nova conta de usuário no sistema. Apenas usuários ADMIN podem registrar novos usuários. O email deve ser único e a senha deve ter pelo menos 8 caracteres.'
   })
   @ApiBody({ 
     type: RegisterDto,
@@ -86,6 +94,23 @@ export class AuthController {
     }
   })
   @ApiResponse({ 
+    status: 401, 
+    description: 'Token inválido ou ausente',
+    type: UnauthorizedErrorResponseDto 
+  })
+  @ApiResponse({ 
+    status: 403, 
+    description: 'Usuário sem permissão de administrador',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Access denied. Only ADMIN can register users.',
+        timestamp: '2024-01-15T10:30:00Z',
+        path: '/auth/register'
+      }
+    }
+  })
+  @ApiResponse({ 
     status: 409, 
     description: 'Email já está em uso',
     type: ConflictErrorResponseDto,
@@ -98,8 +123,8 @@ export class AuthController {
       }
     }
   })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto, @Request() req) {
+    return this.authService.register(registerDto, req.user);
   }
 
   @Post('login')
@@ -248,5 +273,88 @@ export class AuthController {
   })
   async refresh(@Body() refreshDto: RefreshDto) {
     return this.authService.refresh(refreshDto.refreshToken);
+  }
+
+  @Patch('admin/change-password')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(user_role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ 
+    summary: 'Alterar senha de usuário (Admin)',
+    description: 'Permite que um administrador altere a senha de qualquer usuário do sistema. Apenas usuários com perfil ADMIN podem usar esta funcionalidade.'
+  })
+  @ApiBody({ 
+    type: ChangePasswordDto,
+    description: 'Dados para alteração de senha',
+    examples: {
+      change_password: {
+        summary: 'Alterar senha de usuário',
+        description: 'Exemplo de alteração de senha por admin',
+        value: {
+          userUuid: '550e8400-e29b-41d4-a716-446655440000',
+          newPassword: 'NovaSenha@123'
+        }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Senha alterada com sucesso',
+    schema: {
+      example: {
+        message: 'Senha alterada com sucesso',
+        userUuid: '550e8400-e29b-41d4-a716-446655440000'
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Dados inválidos',
+    type: ValidationErrorResponseDto,
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Dados de entrada inválidos',
+        details: [
+          'UUID deve ser válido',
+          'Senha deve ter pelo menos 8 caracteres'
+        ],
+        timestamp: '2024-01-15T10:30:00Z',
+        path: '/auth/admin/change-password'
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'Token inválido ou ausente',
+    type: UnauthorizedErrorResponseDto 
+  })
+  @ApiResponse({ 
+    status: 403, 
+    description: 'Usuário sem permissão de administrador',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'Access denied. Only ADMIN can change user passwords.',
+        timestamp: '2024-01-15T10:30:00Z',
+        path: '/auth/admin/change-password'
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Usuário não encontrado',
+    type: NotFoundErrorResponseDto,
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Usuário não encontrado',
+        timestamp: '2024-01-15T10:30:00Z',
+        path: '/auth/admin/change-password'
+      }
+    }
+  })
+  async adminChangePassword(@Body() changePasswordDto: ChangePasswordDto, @Request() req) {
+    return this.authService.adminChangePassword(changePasswordDto, req.user);
   }
 }
