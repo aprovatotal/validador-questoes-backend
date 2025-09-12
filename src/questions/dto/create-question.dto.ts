@@ -125,4 +125,17 @@ export class CreateQuestionDto {
   @ValidateNested({ each: true })
   @Type(() => CreateAlternativeDto)
   alternatives: CreateAlternativeDto[];
+
+
+  @ApiProperty({
+    description: 'Resolução do texto',
+    example: 'Questão sobre marco fundamental da história brasileira.',
+  })
+  textResolution: string;
+
+  @ApiProperty({
+    description: 'Aplicação da questão',
+    example: 'Questão sobre marco fundamental da história brasileira.',
+  })
+  application: string;
 }

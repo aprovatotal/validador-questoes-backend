@@ -22,6 +22,7 @@ model AppUser {
   updatedAt         DateTime         @updatedAt @map("updated_at")
   approvedQuestions Question[]       @relation("QuestionApprovedBy")
   userDisciplines   UserDiscipline[]
+  usedQuestions     UsedQuestion[]
 
   @@map("app_user")
 }
@@ -47,30 +48,37 @@ model UserDiscipline {
 }
 
 model Question {
-  uuid               String        @id @default(uuid())
-  externalid         String        @unique
+  uuid               String    @id @default(uuid())
+  externalid         String    @unique
   statement          String
   competence         String
   skill              String
-  examArea           String        @map("exam_area")
+  examArea           String    @map("exam_area")
   subject            String
-  disciplineId       BigInt        @map("discipline_id")
+  disciplineId       BigInt    @map("discipline_id")
   topic              String
   application        String?
   interpretation     String?
   strategies         String?
   distractors        String?
   textResolution     String?
-  approved           Boolean       @default(false)
-  approvedAt         DateTime?     @map("approved_at")
-  migrated           Boolean       @default(false)
-  migratedAt         DateTime?     @map("migrated_at")
-  createdAt          DateTime      @default(now()) @map("created_at")
-  updatedAt          DateTime      @updatedAt @map("updated_at")
-  approvedByUserUuid String?       @map("approved_by_user_uuid")
-  alternatives       Alternative[]
-  approvedBy         AppUser?      @relation("QuestionApprovedBy", fields: [approvedByUserUuid], references: [uuid])
-  discipline         Discipline    @relation(fields: [disciplineId], references: [id])
+  approved           Boolean   @default(false)
+  approvedAt         DateTime? @map("approved_at")
+  migrated           Boolean   @default(false)
+  migratedAt         DateTime? @map("migrated_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  approvedByUserUuid String?   @map("approved_by_user_uuid")
+
+  moduleExternalId  String? @map("module_external_id")
+  subjectExternalId String? @map("subject_external_id")
+
+  moduleExternal  Module?        @relation(fields: [moduleExternalId], references: [uuid])
+  subjectExternal Subject?       @relation(fields: [subjectExternalId], references: [uuid])
+  alternatives    Alternative[]
+  approvedBy      AppUser?       @relation("QuestionApprovedBy", fields: [approvedByUserUuid], references: [uuid])
+  discipline      Discipline     @relation(fields: [disciplineId], references: [id])
+  usedQuestions   UsedQuestion[]
 
   @@index([approved, disciplineId], map: "idx_question_approved")
   @@index([disciplineId], map: "idx_question_discipline")
@@ -91,9 +99,75 @@ model Alternative {
   @@map("alternative")
 }
 
+model Module {
+  uuid       String @id @default(uuid())
+  name       String
+  externalId String @unique
+
+  questions Question[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("module")
+}
+
+model Subject {
+  uuid       String @id @default(uuid())
+  name       String
+  externalId String @unique
+
+  questions Question[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("subject")
+}
+
+model UsedQuestion {
+  uuid          String @id @default(uuid())
+  questionUuid  String @map("question_uuid")
+  userUuid      String @map("user_uuid")
+  localUsedUuid String @map("local_used_uuid")
+
+  localUsed LocalUsed @relation(fields: [localUsedUuid], references: [uuid])
+  user      AppUser   @relation(fields: [userUuid], references: [uuid])
+  question  Question  @relation(fields: [questionUuid], references: [uuid])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("used_question")
+}
+
+model LocalUsed {
+  uuid String @id @default(uuid())
+
+  name       String
+  webhookUrl String?
+  status     LocalUsedStatus
+
+  metadata Json? @map("metadata")
+
+  usedQuestion UsedQuestion[]
+
+  webhookExecutedAt DateTime? @map("webhook_executed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("application")
+}
+
 enum user_role {
   ADMIN
   EDITOR
   REVIEWER
   USER
+}
+
+enum LocalUsedStatus {
+  PENDING
+  SUCCESS
+  ERROR
 }

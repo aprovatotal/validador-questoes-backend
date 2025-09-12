@@ -304,6 +304,8 @@ export class QuestionsController {
         approvedAt: '2024-01-15T10:30:00Z',
         createdAt: '2024-01-15T10:00:00Z',
         updatedAt: '2024-01-15T10:30:00Z',
+        textResolution: 'Questão sobre marco fundamental da história brasileira.',
+        application: 'Questão sobre marco fundamental da história brasileira.',
         discipline: {
           id: 5,
           slug: 'history',
