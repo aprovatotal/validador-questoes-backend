@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateQuestionDto } from './dto/create-question.dto';
-import { UpdateQuestionDto } from './dto/update-question.dto';
-import { QueryQuestionsDto } from './dto/query-questions.dto';
-import { user_role } from '@prisma/client';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { CreateQuestionDto } from "./dto/create-question.dto";
+import { UpdateQuestionDto } from "./dto/update-question.dto";
+import { QueryQuestionsDto } from "./dto/query-questions.dto";
+import { user_role } from "@prisma/client";
 
 export interface AuthUser {
   uuid: string;
@@ -21,9 +26,8 @@ export class QuestionsService {
     const { alternatives, disciplineId, ...questionData } = createQuestionDto;
 
     if (!this.userHasAccessToDiscipline(user, BigInt(disciplineId))) {
-      throw new ForbiddenException('Access denied to this discipline');
+      throw new ForbiddenException("Access denied to this discipline");
     }
-
 
     const question = await this.prisma.question.create({
       data: {
@@ -44,13 +48,19 @@ export class QuestionsService {
       ...question,
       createdAt: question.createdAt ? question.createdAt.toISOString() : null,
       updatedAt: question.updatedAt ? question.updatedAt.toISOString() : null,
-      approvedAt: question.approvedAt ? question.approvedAt.toISOString() : null,
-      migratedAt: question.migratedAt ? question.migratedAt.toISOString() : null,
-      alternatives: question.alternatives ? question.alternatives.map(alt => ({
-        ...alt,
-        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
-        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
-      })) : [],
+      approvedAt: question.approvedAt
+        ? question.approvedAt.toISOString()
+        : null,
+      migratedAt: question.migratedAt
+        ? question.migratedAt.toISOString()
+        : null,
+      alternatives: question.alternatives
+        ? question.alternatives.map((alt) => ({
+            ...alt,
+            createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+            updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+          }))
+        : [],
     };
   }
 
@@ -60,23 +70,25 @@ export class QuestionsService {
 
     let whereClause: any = {};
 
-    if (user.role === 'ADMIN') {
+    if (user.role === "ADMIN") {
       if (discipline) {
         const targetDiscipline = await this.prisma.discipline.findUnique({
-          where: { slug: discipline }
+          where: { slug: discipline },
         });
         if (!targetDiscipline) {
-          throw new NotFoundException('Discipline not found');
+          throw new NotFoundException("Discipline not found");
         }
         whereClause.disciplineId = targetDiscipline.id;
       }
     } else {
-      let disciplineIds = user.disciplines.map(d => d.id);
+      let disciplineIds = user.disciplines.map((d) => d.id);
 
       if (discipline) {
-        const targetDiscipline = user.disciplines.find(d => d.slug === discipline);
+        const targetDiscipline = user.disciplines.find(
+          (d) => d.slug === discipline
+        );
         if (!targetDiscipline) {
-          throw new ForbiddenException('Access denied to this discipline');
+          throw new ForbiddenException("Access denied to this discipline");
         }
         disciplineIds = [targetDiscipline.id];
       }
@@ -88,9 +100,9 @@ export class QuestionsService {
       ...whereClause,
       ...(search && {
         OR: [
-          { statement: { contains: search, mode: 'insensitive' as const } },
-          { topic: { contains: search, mode: 'insensitive' as const } },
-          { subject: { contains: search, mode: 'insensitive' as const } },
+          { statement: { contains: search, mode: "insensitive" as const } },
+          { topic: { contains: search, mode: "insensitive" as const } },
+          { subject: { contains: search, mode: "insensitive" as const } },
         ],
       }),
     };
@@ -100,28 +112,32 @@ export class QuestionsService {
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           alternatives: true,
           discipline: true,
           approvedBy: { select: { name: true, email: true } },
+          moduleExternal: true,
+          subjectExternal: true,
         },
       }),
       this.prisma.question.count({ where }),
     ]);
 
     // Garantir que os campos de data sejam incluídos e convertidos para string ISO
-    const questionsWithDates = questions.map(q => ({
+    const questionsWithDates = questions.map((q) => ({
       ...q,
       createdAt: q.createdAt ? q.createdAt.toISOString() : null,
       updatedAt: q.updatedAt ? q.updatedAt.toISOString() : null,
       approvedAt: q.approvedAt ? q.approvedAt.toISOString() : null,
       migratedAt: q.migratedAt ? q.migratedAt.toISOString() : null,
-      alternatives: q.alternatives ? q.alternatives.map(alt => ({
-        ...alt,
-        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
-        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
-      })) : [],
+      alternatives: q.alternatives
+        ? q.alternatives.map((alt) => ({
+            ...alt,
+            createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+            updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+          }))
+        : [],
     }));
 
     return {
@@ -141,23 +157,25 @@ export class QuestionsService {
 
     let whereClause: any = {};
 
-    if (user.role === 'ADMIN') {
+    if (user.role === "ADMIN") {
       if (discipline) {
         const targetDiscipline = await this.prisma.discipline.findUnique({
-          where: { slug: discipline }
+          where: { slug: discipline },
         });
         if (!targetDiscipline) {
-          throw new NotFoundException('Discipline not found');
+          throw new NotFoundException("Discipline not found");
         }
         whereClause.disciplineId = targetDiscipline.id;
       }
     } else {
-      let disciplineIds = user.disciplines.map(d => d.id);
+      let disciplineIds = user.disciplines.map((d) => d.id);
 
       if (discipline) {
-        const targetDiscipline = user.disciplines.find(d => d.slug === discipline);
+        const targetDiscipline = user.disciplines.find(
+          (d) => d.slug === discipline
+        );
         if (!targetDiscipline) {
-          throw new ForbiddenException('Access denied to this discipline');
+          throw new ForbiddenException("Access denied to this discipline");
         }
         disciplineIds = [targetDiscipline.id];
       }
@@ -170,9 +188,9 @@ export class QuestionsService {
       approved: true, // Filtro para questões aprovadas
       ...(search && {
         OR: [
-          { statement: { contains: search, mode: 'insensitive' as const } },
-          { topic: { contains: search, mode: 'insensitive' as const } },
-          { subject: { contains: search, mode: 'insensitive' as const } },
+          { statement: { contains: search, mode: "insensitive" as const } },
+          { topic: { contains: search, mode: "insensitive" as const } },
+          { subject: { contains: search, mode: "insensitive" as const } },
         ],
       }),
     };
@@ -182,7 +200,7 @@ export class QuestionsService {
         where,
         skip,
         take: pageSize,
-        orderBy: { approvedAt: 'desc' }, // Ordenar por data de aprovação
+        orderBy: { approvedAt: "desc" }, // Ordenar por data de aprovação
         include: {
           alternatives: true,
           discipline: true,
@@ -192,17 +210,19 @@ export class QuestionsService {
       this.prisma.question.count({ where }),
     ]);
 
-    const questionsWithDates = questions.map(q => ({
+    const questionsWithDates = questions.map((q) => ({
       ...q,
       createdAt: q.createdAt ? q.createdAt.toISOString() : null,
       updatedAt: q.updatedAt ? q.updatedAt.toISOString() : null,
       approvedAt: q.approvedAt ? q.approvedAt.toISOString() : null,
       migratedAt: q.migratedAt ? q.migratedAt.toISOString() : null,
-      alternatives: q.alternatives ? q.alternatives.map(alt => ({
-        ...alt,
-        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
-        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
-      })) : [],
+      alternatives: q.alternatives
+        ? q.alternatives.map((alt) => ({
+            ...alt,
+            createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+            updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+          }))
+        : [],
     }));
 
     return {
@@ -220,43 +240,68 @@ export class QuestionsService {
     const question = await this.prisma.question.findUnique({
       where: { uuid },
       include: {
-        alternatives: { orderBy: { order: 'asc' } },
+        alternatives: { orderBy: { order: "asc" } },
         discipline: true,
         approvedBy: { select: { name: true, email: true } },
+        moduleExternal: true,
+        subjectExternal: true,
       },
     });
 
     if (!question) {
-      throw new NotFoundException('Question not found');
+      throw new NotFoundException("Question not found");
     }
 
-    if (user.role !== 'ADMIN' && !this.userHasAccessToDiscipline(user, question.disciplineId)) {
-      throw new ForbiddenException('Access denied to this discipline');
+    if (
+      user.role !== "ADMIN" &&
+      !this.userHasAccessToDiscipline(user, question.disciplineId)
+    ) {
+      throw new ForbiddenException("Access denied to this discipline");
     }
 
     return {
       ...question,
       createdAt: question.createdAt ? question.createdAt.toISOString() : null,
       updatedAt: question.updatedAt ? question.updatedAt.toISOString() : null,
-      approvedAt: question.approvedAt ? question.approvedAt.toISOString() : null,
-      migratedAt: question.migratedAt ? question.migratedAt.toISOString() : null,
-      alternatives: question.alternatives ? question.alternatives.map(alt => ({
-        ...alt,
-        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
-        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
-      })) : [],
+      approvedAt: question.approvedAt
+        ? question.approvedAt.toISOString()
+        : null,
+      migratedAt: question.migratedAt
+        ? question.migratedAt.toISOString()
+        : null,
+      alternatives: question.alternatives
+        ? question.alternatives.map((alt) => ({
+            ...alt,
+            createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+            updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+          }))
+        : [],
     };
   }
 
-  async update(uuid: string, updateQuestionDto: UpdateQuestionDto, user: AuthUser) {
+  async update(
+    uuid: string,
+    updateQuestionDto: UpdateQuestionDto,
+    user: AuthUser
+  ) {
     const question = await this.findOne(uuid, user);
 
-    const { alternatives, disciplineId, ...questionData } = updateQuestionDto as any;
+    const { alternatives, disciplineId, moduleId, subjectId, ...questionData } =
+      updateQuestionDto as any;
 
-    if (disciplineId && !this.userHasAccessToDiscipline(user, BigInt(disciplineId))) {
-      throw new ForbiddenException('Access denied to this discipline');
+    if (
+      disciplineId &&
+      !this.userHasAccessToDiscipline(user, BigInt(disciplineId))
+    ) {
+      throw new ForbiddenException("Access denied to this discipline");
     }
 
+    const module = await this.prisma.module.findUnique({
+      where: { externalId: moduleId },
+    });
+    const subject = await this.prisma.subject.findUnique({
+      where: { externalId: subjectId },
+    });
 
     return this.prisma.$transaction(async (tx) => {
       if (alternatives) {
@@ -275,10 +320,14 @@ export class QuestionsService {
               create: alternatives,
             },
           }),
+          ...(module?.uuid && { moduleExternalId: module.uuid }),
+          ...(subject?.uuid && { subjectExternalId: subject.uuid }),
         },
         include: {
-          alternatives: { orderBy: { order: 'asc' } },
+          alternatives: { orderBy: { order: "asc" } },
           discipline: true,
+          moduleExternal: true,
+          subjectExternal: true,
           approvedBy: { select: { name: true, email: true } },
         },
       });
@@ -287,20 +336,28 @@ export class QuestionsService {
         ...updated,
         createdAt: updated.createdAt ? updated.createdAt.toISOString() : null,
         updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : null,
-        approvedAt: updated.approvedAt ? updated.approvedAt.toISOString() : null,
-        migratedAt: updated.migratedAt ? updated.migratedAt.toISOString() : null,
-        alternatives: updated.alternatives ? updated.alternatives.map(alt => ({
-          ...alt,
-          createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
-          updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
-        })) : [],
+        approvedAt: updated.approvedAt
+          ? updated.approvedAt.toISOString()
+          : null,
+        migratedAt: updated.migratedAt
+          ? updated.migratedAt.toISOString()
+          : null,
+        alternatives: updated.alternatives
+          ? updated.alternatives.map((alt) => ({
+              ...alt,
+              createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+              updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+            }))
+          : [],
       };
     });
   }
 
   async approve(uuid: string, user: AuthUser) {
-    if (!['REVIEWER', 'EDITOR', 'ADMIN'].includes(user.role)) {
-      throw new ForbiddenException('Insufficient permissions to approve questions');
+    if (!["REVIEWER", "EDITOR", "ADMIN"].includes(user.role)) {
+      throw new ForbiddenException(
+        "Insufficient permissions to approve questions"
+      );
     }
 
     const question = await this.findOne(uuid, user);
@@ -313,7 +370,7 @@ export class QuestionsService {
         approvedByUserUuid: user.uuid,
       },
       include: {
-        alternatives: { orderBy: { order: 'asc' } },
+        alternatives: { orderBy: { order: "asc" } },
         discipline: true,
         approvedBy: { select: { name: true, email: true } },
       },
@@ -323,13 +380,19 @@ export class QuestionsService {
       ...approved,
       createdAt: approved.createdAt ? approved.createdAt.toISOString() : null,
       updatedAt: approved.updatedAt ? approved.updatedAt.toISOString() : null,
-      approvedAt: approved.approvedAt ? approved.approvedAt.toISOString() : null,
-      migratedAt: approved.migratedAt ? approved.migratedAt.toISOString() : null,
-      alternatives: approved.alternatives ? approved.alternatives.map(alt => ({
-        ...alt,
-        createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
-        updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
-      })) : [],
+      approvedAt: approved.approvedAt
+        ? approved.approvedAt.toISOString()
+        : null,
+      migratedAt: approved.migratedAt
+        ? approved.migratedAt.toISOString()
+        : null,
+      alternatives: approved.alternatives
+        ? approved.alternatives.map((alt) => ({
+            ...alt,
+            createdAt: alt.createdAt ? alt.createdAt.toISOString() : null,
+            updatedAt: alt.updatedAt ? alt.updatedAt.toISOString() : null,
+          }))
+        : [],
     };
   }
 
@@ -341,10 +404,128 @@ export class QuestionsService {
     });
   }
 
-  private userHasAccessToDiscipline(user: AuthUser, disciplineId: bigint): boolean {
-    if (user.role === 'ADMIN') {
+  async findOneWithTrackings(uuid: string, user: AuthUser) {
+    const question = await this.prisma.question.findUnique({
+      where: { uuid },
+      include: {
+        alternatives: { orderBy: { order: "asc" } },
+        discipline: true,
+        approvedBy: { select: { name: true, email: true } },
+        moduleExternal: true,
+        subjectExternal: true,
+        usedQuestions: {
+          include: {
+            localUsed: true,
+          },
+        },
+      },
+    });
+
+    if (!question) {
+      throw new NotFoundException("Question not found");
+    }
+
+    if (
+      user.role !== "ADMIN" &&
+      !this.userHasAccessToDiscipline(user, question.disciplineId)
+    ) {
+      throw new ForbiddenException("Access denied to this discipline");
+    }
+
+    return {
+      ...question,
+      createdAt: question.createdAt ? question.createdAt.toISOString() : null,
+      updatedAt: question.updatedAt ? question.updatedAt.toISOString() : null,
+      approvedAt: question.approvedAt
+        ? question.approvedAt.toISOString()
+        : null,
+      migratedAt: question.migratedAt
+        ? question.migratedAt.toISOString()
+        : null,
+      usedQuestion: question.usedQuestions.map(uq => ({
+        ...uq,
+        createdAt: uq.createdAt.toISOString(),
+        updatedAt: uq.updatedAt.toISOString(),
+        localUsed: {
+          ...uq.localUsed,
+          createdAt: uq.localUsed.createdAt.toISOString(),
+          updatedAt: uq.localUsed.updatedAt.toISOString(),
+          webhookExecutedAt: uq.localUsed.webhookExecutedAt?.toISOString() || null,
+        },
+      })),
+    };
+  }
+
+  async addTracking(questionUuid: string, trackingUuid: string, user: AuthUser) {
+    // Verificar se a questão existe e o usuário tem acesso
+    const question = await this.prisma.question.findUnique({
+      where: { uuid: questionUuid },
+    });
+
+    if (!question) {
+      throw new NotFoundException("Question not found");
+    }
+
+    if (
+      user.role !== "ADMIN" &&
+      !this.userHasAccessToDiscipline(user, question.disciplineId)
+    ) {
+      throw new ForbiddenException("Access denied to this discipline");
+    }
+
+    // Verificar se o rastreamento existe
+    const tracking = await this.prisma.localUsed.findUnique({
+      where: { uuid: trackingUuid },
+    });
+
+    if (!tracking) {
+      throw new NotFoundException("Tracking not found");
+    }
+
+    // Verificar se já existe vínculo
+    const existingLink = await this.prisma.usedQuestion.findFirst({
+      where: {
+        questionUuid: questionUuid,
+        localUsedUuid: trackingUuid,
+      },
+    });
+
+    if (existingLink) {
+      throw new BadRequestException("This tracking is already linked to this question");
+    }
+
+    // Criar o vínculo
+    const usedQuestion = await this.prisma.usedQuestion.create({
+      data: {
+        questionUuid: questionUuid,
+        localUsedUuid: trackingUuid,
+        userUuid: user.uuid,
+      },
+      include: {
+        localUsed: true,
+      },
+    });
+
+    return {
+      ...usedQuestion,
+      createdAt: usedQuestion.createdAt.toISOString(),
+      updatedAt: usedQuestion.updatedAt.toISOString(),
+      localUsed: {
+        ...usedQuestion.localUsed,
+        createdAt: usedQuestion.localUsed.createdAt.toISOString(),
+        updatedAt: usedQuestion.localUsed.updatedAt.toISOString(),
+        webhookExecutedAt: usedQuestion.localUsed.webhookExecutedAt?.toISOString() || null,
+      },
+    };
+  }
+
+  private userHasAccessToDiscipline(
+    user: AuthUser,
+    disciplineId: bigint
+  ): boolean {
+    if (user.role === "ADMIN") {
       return true;
     }
-    return user.disciplines.some(d => d.id === disciplineId);
+    return user.disciplines.some((d) => d.id === disciplineId);
   }
 }
