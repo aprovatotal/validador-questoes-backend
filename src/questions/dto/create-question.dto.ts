@@ -1,17 +1,24 @@
-import { IsString, IsArray, IsNumber, IsOptional, ValidateNested, IsBoolean } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsString,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  ValidateNested,
+  IsBoolean,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateAlternativeDto {
   @ApiProperty({
-    description: 'Texto da alternativa',
-    example: 'Brasil foi descoberto em 1500',
+    description: "Texto da alternativa",
+    example: "Brasil foi descoberto em 1500",
   })
   @IsString()
   text: string;
 
   @ApiProperty({
-    description: 'Ordem de exibição da alternativa',
+    description: "Ordem de exibição da alternativa",
     example: 1,
     minimum: 1,
   })
@@ -19,7 +26,7 @@ export class CreateAlternativeDto {
   order: number;
 
   @ApiProperty({
-    description: 'Indica se a alternativa é correta',
+    description: "Indica se a alternativa é correta",
     example: true,
   })
   @IsBoolean()
@@ -28,65 +35,66 @@ export class CreateAlternativeDto {
 
 export class CreateQuestionDto {
   @ApiProperty({
-    description: 'ID externo da questão (identificador único do sistema de origem)',
-    example: 'HIS001',
+    description:
+      "ID externo da questão (identificador único do sistema de origem)",
+    example: "HIS001",
   })
   @IsString()
   externalid: string;
 
   @ApiProperty({
-    description: 'Enunciado da questão',
-    example: 'Em que ano foi proclamada a Independência do Brasil?',
+    description: "Enunciado da questão",
+    example: "Em que ano foi proclamada a Independência do Brasil?",
   })
   @IsString()
   statement: string;
 
   @ApiProperty({
-    description: 'Competência avaliada pela questão',
-    example: 'Compreender marcos históricos',
+    description: "Competência avaliada pela questão",
+    example: "Compreender marcos históricos",
   })
   @IsString()
   competence: string;
 
   @ApiProperty({
-    description: 'Habilidade específica avaliada',
-    example: 'Identificar datas importantes da história brasileira',
+    description: "Habilidade específica avaliada",
+    example: "Identificar datas importantes da história brasileira",
   })
   @IsString()
   skill: string;
 
   @ApiProperty({
-    description: 'Área do exame (ch, cn, lc, mt)',
-    example: 'ch',
-    enum: ['ch', 'cn', 'lc', 'mt'],
+    description: "Área do exame (ch, cn, lc, mt)",
+    example: "ch",
+    enum: ["ch", "cn", "lc", "mt"],
   })
   @IsString()
   examArea: string;
 
   @ApiProperty({
-    description: 'Assunto da questão',
-    example: 'História do Brasil',
+    description: "Assunto da questão",
+    example: "História do Brasil",
   })
   @IsString()
   subject: string;
 
   @ApiProperty({
-    description: 'ID da disciplina',
+    description: "ID da disciplina",
     example: 5,
   })
   @IsNumber()
   disciplineId: number;
 
   @ApiProperty({
-    description: 'Tópico específico da questão',
-    example: 'Brasil Independente',
+    description: "Tópico específico da questão",
+    example: "Brasil Independente",
   })
   @IsString()
   topic: string;
 
   @ApiProperty({
-    description: 'Interpretação pedagógica da questão',
-    example: 'Questão sobre marco fundamental da história brasileira.',
+    description: "Interpretação pedagógica da questão",
+    example: "Questão sobre marco fundamental da história brasileira.",
     required: false,
   })
   @IsOptional()
@@ -94,8 +102,9 @@ export class CreateQuestionDto {
   interpretation?: string;
 
   @ApiProperty({
-    description: 'Estratégias de resolução',
-    example: 'Conhecer cronologia da história do Brasil; Associar eventos e datas',
+    description: "Estratégias de resolução",
+    example:
+      "Conhecer cronologia da história do Brasil; Associar eventos e datas",
     required: false,
   })
   @IsOptional()
@@ -103,8 +112,8 @@ export class CreateQuestionDto {
   strategies?: string;
 
   @ApiProperty({
-    description: 'Descrição dos distratores (alternativas incorretas)',
-    example: 'Datas de outros eventos importantes da história brasileira',
+    description: "Descrição dos distratores (alternativas incorretas)",
+    example: "Datas de outros eventos importantes da história brasileira",
     required: false,
   })
   @IsOptional()
@@ -112,13 +121,13 @@ export class CreateQuestionDto {
   distractors?: string;
 
   @ApiProperty({
-    description: 'Lista de alternativas da questão',
+    description: "Lista de alternativas da questão",
     type: [CreateAlternativeDto],
     example: [
-      { text: '1822', order: 1, correct: true },
-      { text: '1889', order: 2, correct: false },
-      { text: '1888', order: 3, correct: false },
-      { text: '1824', order: 4, correct: false }
+      { text: "1822", order: 1, correct: true },
+      { text: "1889", order: 2, correct: false },
+      { text: "1888", order: 3, correct: false },
+      { text: "1824", order: 4, correct: false },
     ],
   })
   @IsArray()
@@ -126,16 +135,29 @@ export class CreateQuestionDto {
   @Type(() => CreateAlternativeDto)
   alternatives: CreateAlternativeDto[];
 
-
   @ApiProperty({
-    description: 'Resolução do texto',
-    example: 'Questão sobre marco fundamental da história brasileira.',
+    description: "Resolução do texto",
+    example: "Questão sobre marco fundamental da história brasileira.",
   })
   textResolution: string;
 
   @ApiProperty({
-    description: 'Aplicação da questão',
-    example: 'Questão sobre marco fundamental da história brasileira.',
+    description: "Aplicação da questão",
+    example: "Questão sobre marco fundamental da história brasileira.",
   })
   application: string;
+
+  @ApiProperty({
+    description: "ID do módulo (de acordo com a plataforma)",
+    example: "abc123",
+  })
+  @IsString()
+  moduleId: string;
+
+  @ApiProperty({
+    description: "ID do assunto (de acordo com a plataforma)",
+    example: "abc123",
+  })
+  @IsString()
+  subjectId: string;
 }

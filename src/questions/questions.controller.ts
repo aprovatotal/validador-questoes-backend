@@ -347,6 +347,47 @@ export class QuestionsController {
     return this.questionsService.findOne(uuid, req.user);
   }
 
+  @Get(':uuid/with-trackings')
+  @ApiOperation({ 
+    summary: 'Buscar questão com rastreamentos',
+    description: 'Retorna uma questão específica com todos os rastreamentos vinculados.'
+  })
+  @ApiParam({ 
+    name: 'uuid', 
+    description: 'UUID da questão',
+    example: '550e8400-e29b-41d4-a716-446655440000'
+  })
+  findOneWithTrackings(@Param('uuid') uuid: string, @Request() req) {
+    return this.questionsService.findOneWithTrackings(uuid, req.user);
+  }
+
+  @Post(':uuid/add-tracking')
+  @ApiOperation({ 
+    summary: 'Adicionar rastreamento à questão',
+    description: 'Vincula um rastreamento a uma questão específica.'
+  })
+  @ApiParam({ 
+    name: 'uuid', 
+    description: 'UUID da questão',
+    example: '550e8400-e29b-41d4-a716-446655440000'
+  })
+  @ApiBody({
+    description: 'ID do rastreamento a ser vinculado',
+    schema: {
+      type: 'object',
+      properties: {
+        trackingUuid: {
+          type: 'string',
+          description: 'UUID do rastreamento',
+          example: '550e8400-e29b-41d4-a716-446655440001'
+        }
+      }
+    }
+  })
+  addTracking(@Param('uuid') uuid: string, @Body() body: { trackingUuid: string }, @Request() req) {
+    return this.questionsService.addTracking(uuid, body.trackingUuid, req.user);
+  }
+
   @Patch(':uuid')
   @ApiOperation({ 
     summary: 'Atualizar questão',

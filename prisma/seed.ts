@@ -13,13 +13,13 @@ async function main() {
     console.log('📚 Creating disciplines...');
     await prisma.discipline.createMany({
       data: [
-        { slug: 'mathematics', name: 'Matemática' },
-        { slug: 'portuguese', name: 'Português' },
-        { slug: 'biology', name: 'Biologia' },
-        { slug: 'geography', name: 'Geografia' },
-        { slug: 'history', name: 'História' },
-        { slug: 'chemistry', name: 'Química' },
-        { slug: 'physics', name: 'Física' },
+        { slug: 'mathematics', name: 'Matemática' , externalId: '5b2186ec9c5aa43084ff7d1c'},
+        { slug: 'portuguese', name: 'Português' , externalId: '5fe9d27935e60c598a36ba7a'},
+        { slug: 'biology', name: 'Biologia' , externalId: '5b2186ec9c5aa43084ff7d1a'},
+        { slug: 'geography', name: 'Geografia' , externalId: '5fe9d2a035e60c598a36ba7d'},
+        { slug: 'history', name: 'História' , externalId: '5fe9d27135e60c598a36ba79'},
+        { slug: 'chemistry', name: 'Química' , externalId: '5b2186ec9c5aa43084ff7d18'},
+        { slug: 'physics', name: 'Física' , externalId: '5b2186ec9c5aa43084ff7d19'},
       ],
     });
     console.log('✅ Disciplines created!');
